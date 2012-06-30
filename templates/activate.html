@@ -1,0 +1,9 @@
+{% if success %}
+	Congratulations! You activated your account successfully!
+{% else %}
+	{% if expired %}
+		Sorry, the activation window for this account is over. Please register again!
+	{% else %}
+		Sorry, something went wrong. Did you enter the correct url?
+	{% endif %}
+{% endif %}

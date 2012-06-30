@@ -1,0 +1,3 @@
+[submodule "handball"]
+	path = handball
+	url = https://MaKleSoft@github.com/Engaginglab/scoreit-handball.git

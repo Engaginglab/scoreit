@@ -120,10 +120,11 @@ INSTALLED_APPS = (
     'tastypie',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
+    'auth',
     'handball'
 )
 
-AUTH_PROFILE_MODULE = 'handball.Person'
+AUTH_PROFILE_MODULE = 'auth.profile'
 
 EMAIL_HOST = 'wp253.webpack.hosteurope.de'
 

@@ -40,6 +40,7 @@ class ProfileResource(ModelResource):
 
     def dehydrate(self, bundle):
         bundle.data['display_name'] = str(bundle.obj)
+        return bundle
 
 
 def sign_up(request):
@@ -142,8 +143,8 @@ def validate_user(request):
 def is_unique(request):
     data = {}
 
-    if 'username' in request.GET:
-        username = request.GET['username']
+    if 'user_name' in request.GET:
+        username = request.GET['user_name']
 
         try:
             User.objects.get(username=username)
@@ -153,7 +154,7 @@ def is_unique(request):
         except User.MultipleObjectsReturned:
             unique = False
 
-        data['username'] = unique
+        data['user_name'] = unique
 
     if 'email' in request.GET:
         email = request.GET['email']

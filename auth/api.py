@@ -11,15 +11,26 @@ from tastypie.utils.mime import determine_format
 from django.utils.translation import ugettext as _
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from tastypie.resources import ModelResource, ALL_WITH_RELATIONS
+from tastypie.models import ApiKey
 from tastypie import fields
 from auth.models import Profile
 from tastypie.authorization import DjangoAuthorization, Authorization
 from tastypie.authentication import Authentication, ApiKeyAuthentication
 
 
+class ApiKeyResource(ModelResource):
+    class Meta:
+        allowed_methods = []
+        queryset = ApiKey.objects.all()
+
+
 class UserResource(ModelResource):
+    auth_profile = fields.OneToOneField('auth.api.ProfileResource', 'auth_profile', full=True)
+    handball_profile = fields.OneToOneField('handball.api.PersonResource', 'handball_profile', blank=True, null=True, full=True)
+    api_key = fields.OneToOneField(ApiKeyResource, 'api_key', full=True)
 
     class Meta:
+        allowed_methods = ['get']
         queryset = User.objects.all()
         excludes = ['email', 'password']
 
@@ -38,9 +49,9 @@ class ProfileResource(ModelResource):
             'last_name': ['exact']
         }
 
-    def dehydrate(self, bundle):
-        bundle.data['display_name'] = str(bundle.obj)
-        return bundle
+    # def dehydrate(self, bundle):
+    #     bundle.data['display_name'] = str(bundle.obj)
+    #     return bundle
 
 
 def sign_up(request):
@@ -82,16 +93,10 @@ def sign_up(request):
         send_mail(subject, message, sender, recipients)
 
         user_resource = UserResource()
-        profile_resource = ProfileResource()
+        bundle = user_resource.build_bundle(obj=user, request=request)
+        user_resource.full_dehydrate(bundle)
 
-        data = {
-            'user': user_resource.get_resource_uri(user),
-            'profile': profile_resource.get_resource_uri(auth_profile),
-            'activation_key': activation_key
-        }
-
-        return HttpResponse(serializer.serialize(data, format, {}))
-
+        return HttpResponse(user_resource.serialize(None, bundle, 'application/json'))
     else:
         return HttpResponseBadRequest(serializer.serialize(form.errors, format, {}))
 
@@ -127,17 +132,22 @@ def validate_user(request):
 
     user = authenticate(username=username, password=password)
 
-    if user is None or not user.is_active:
+    if user is None:
         return HttpResponseNotFound('User does not exist or password incorrect.')
+    if not user.is_active:
+        return HttpResponseNotFound('This user has not been activated yet!')
 
-    auth_profile = user.get_profile()
+    user_resource = UserResource()
+    bundle = user_resource.build_bundle(obj=user, request=request)
+    user_resource.full_dehydrate(bundle)
+    # auth_profile = user.get_profile()
 
-    profile_resource = ProfileResource()
-    bundle = profile_resource.build_bundle(obj=auth_profile, request=request)
-    profile_resource.full_dehydrate(bundle)
-    bundle.data['api_key'] = user.api_key.key
+    # profile_resource = ProfileResource()
+    # bundle = profile_resource.build_bundle(obj=auth_profile, request=request)
+    # profile_resource.full_dehydrate(bundle)
+    # bundle.data['api_key'] = user.api_key.key
 
-    return HttpResponse(profile_resource.serialize(None, bundle, 'application/json'))
+    return HttpResponse(user_resource.serialize(None, bundle, 'application/json'))
 
 
 def is_unique(request):

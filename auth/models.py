@@ -4,7 +4,7 @@ from django.db.models.signals import post_save
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, related_name='auth_profile')
 
     # Fields used for user activation after signup
     activation_key = models.CharField(max_length=40, blank=True)

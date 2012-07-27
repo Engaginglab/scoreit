@@ -56,9 +56,9 @@ def sign_up(request):
         first_name = form.cleaned_data['first_name']
         last_name = form.cleaned_data['last_name']
 
-        user = User.objects.create(username=username, password=password,
-            first_name=first_name, last_name=last_name, email=email,
-            is_active=False)
+        user = User.objects.create(username=username, first_name=first_name,
+            last_name=last_name, email=email, is_active=False)
+        user.set_password(password)
         user.save()
 
         auth_profile = user.get_profile()

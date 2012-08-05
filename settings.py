@@ -126,13 +126,13 @@ INSTALLED_APPS = (
 
 AUTH_PROFILE_MODULE = 'auth.profile'
 
-EMAIL_HOST = 'wp253.webpack.hosteurope.de'
+EMAIL_HOST = 'smtp.googlemail.com'
 
-EMAIL_HOST_PASSWORD = 'K2uqyPzaA'
+EMAIL_HOST_PASSWORD = 'i4RPUif0DaDyKE7'
 
-EMAIL_HOST_USER = 'wp10585465-maklesoft'
+EMAIL_HOST_USER = 'noreply@score-it.de'
 
-EMAIL_PORT = 25
+EMAIL_PORT = 587
 
 EMAIL_SUBJECT_PREFIX = ''
 

@@ -82,7 +82,7 @@ def sign_up(request):
         # User is unactive until visiting activation link
         auth_profile.activation_key = activation_key
         auth_profile.key_expires = key_expires
-        activation_link = 'http://127.0.0.1:8000/auth/activate/' + activation_key
+        activation_link = 'http://127.0.0.1:8000/auth/v1/activate/' + activation_key
 
         auth_profile.save()
 

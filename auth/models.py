@@ -4,6 +4,10 @@ from django.db.models.signals import post_save
 
 
 class Profile(models.Model):
+    """
+        Model for user profile. Currently mainly used for storing data needed for the activation procedure.
+        Assoziated with the user model via a one-to-one field and the USER_AUTH_MODULE flag in the django settings.
+    """
     user = models.OneToOneField(User, related_name='auth_profile')
 
     # Fields used for user activation after signup
@@ -15,7 +19,9 @@ class Profile(models.Model):
 
 
 def create_user_profile(sender, instance, created, **kwargs):
-    # Create user profile for user after creation
+    """
+        Automatically create a user profile whenever a user is created
+    """
     if created:
         Profile.objects.create(user=instance)
 

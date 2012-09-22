@@ -4,12 +4,14 @@ from django.contrib.auth.models import User
 
 
 class SignUpForm(forms.Form):
+    """
+        Form for user signup. Mainly used for data validation.
+    """
+
     username = forms.CharField(label=_('User name'), required=True)
     email = forms.EmailField(label=_('Email'), required=True)
     password = forms.CharField(widget=forms.PasswordInput,
         label=_('Password'), required=True)
-    # password_repeat = forms.CharField(widget=forms.PasswordInput,
-    #     label=_('Repeat Password'), required=True)
 
     first_name = forms.CharField(label=_('First Name'), required=True)
     last_name = forms.CharField(label=_('Last Name'), required=True)

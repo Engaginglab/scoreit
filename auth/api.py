@@ -1,3 +1,9 @@
+"""
+    Authentication resources.
+
+    TODO: Change authentication to ApiKeyAuthentication
+"""
+
 from auth.forms import SignUpForm
 import sha
 import datetime
@@ -19,15 +25,21 @@ from tastypie.authentication import Authentication, ApiKeyAuthentication
 
 
 class ApiKeyResource(ModelResource):
+    """
+        Resource for the ApiKey resource which is part of the tastypie authentication module.
+    """
     class Meta:
         allowed_methods = []
         queryset = ApiKey.objects.all()
 
 
 class UserResource(ModelResource):
-    auth_profile = fields.OneToOneField('auth.api.ProfileResource', 'auth_profile', full=True)
-    handball_profile = fields.OneToOneField('handball.api.PersonResource', 'handball_profile', blank=True, null=True, full=True)
-    api_key = fields.OneToOneField(ApiKeyResource, 'api_key', full=True)
+    """
+        Resource for the User Model which is part of the Django authorization module
+    """
+    auth_profile = fields.OneToOneField('auth.api.ProfileResource', 'auth_profile', full=True)  # Auth profile containing information needed for activation and other general information
+    handball_profile = fields.OneToOneField('handball.api.PersonResource', 'handball_profile', blank=True, null=True, full=True)  # Handball profile containing all information associated with handall
+    api_key = fields.OneToOneField(ApiKeyResource, 'api_key', full=True)  # Api key needed for authentication against the RESTful API
 
     class Meta:
         allowed_methods = ['get']
@@ -36,6 +48,9 @@ class UserResource(ModelResource):
 
 
 class ProfileResource(ModelResource):
+    """
+        Resource for the Profile Resource defined in the auth app
+    """
     user = fields.OneToOneField(UserResource, 'user')
 
     class Meta:
@@ -49,12 +64,11 @@ class ProfileResource(ModelResource):
             'last_name': ['exact']
         }
 
-    # def dehydrate(self, bundle):
-    #     bundle.data['display_name'] = str(bundle.obj)
-    #     return bundle
-
 
 def sign_up(request):
+    """
+        Create a new user including profile and send email with activation link.
+    """
     form = SignUpForm(request.POST)
     serializer = Serializer()
     format = determine_format(request, serializer,
@@ -67,6 +81,7 @@ def sign_up(request):
         first_name = form.cleaned_data['first_name']
         last_name = form.cleaned_data['last_name']
 
+        # Create new user (profile is automatically created)
         user = User.objects.create(username=username, first_name=first_name,
             last_name=last_name, email=email, is_active=False)
         user.set_password(password)
@@ -82,10 +97,11 @@ def sign_up(request):
         # User is unactive until visiting activation link
         auth_profile.activation_key = activation_key
         auth_profile.key_expires = key_expires
-        activation_link = 'http://127.0.0.1:8000/auth/v1/activate/' + activation_key
+        activation_link = 'http://127.0.0.1:8000/auth/v1/activate/' + activation_key  # TODO: replace with actual actication link (http://api.score-it.de/auth/v1/activate/)
 
         auth_profile.save()
 
+        # TODO: Design better email
         subject = _('Welcome to ScoreIt!')
         message = _('To activate, please click the following link:\n' + activation_link)
         sender = _('noreply@score-it.de')
@@ -106,6 +122,7 @@ def validate_user(request):
     Checks a user's basic auth credentials and, if valid, returns the users data
     """
 
+    # Authenticate via basic auth. Does not work in tastypie 0.9.11 yes. Should work with 0.9.12
     # if not request.META.get('HTTP_AUTHORIZATION'):
     #     return HttpResponseBadRequest('No HTTP_AUTHORIZATION header found')
 
@@ -137,20 +154,18 @@ def validate_user(request):
     if not user.is_active:
         return HttpResponseNotFound('This user has not been activated yet!')
 
+    # Return user data including api key
     user_resource = UserResource()
     bundle = user_resource.build_bundle(obj=user, request=request)
     user_resource.full_dehydrate(bundle)
-    # auth_profile = user.get_profile()
-
-    # profile_resource = ProfileResource()
-    # bundle = profile_resource.build_bundle(obj=auth_profile, request=request)
-    # profile_resource.full_dehydrate(bundle)
-    # bundle.data['api_key'] = user.api_key.key
 
     return HttpResponse(user_resource.serialize(None, bundle, 'application/json'))
 
 
 def is_unique(request):
+    """
+        Check if a username or email exists already
+    """
     data = {}
 
     if 'user_name' in request.GET:

@@ -5,6 +5,10 @@ from auth.models import Profile
 
 
 def activate(request, activation_key):
+    """
+        Activate user using his acitivation key
+    """
+
     auth_profile = get_object_or_404(Profile, activation_key=activation_key)
     user = auth_profile.user
 
